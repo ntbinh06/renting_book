@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String? @db.Text
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String?   @db.VarChar(255)
+  avatar      String?   @db.VarChar(100)
+  image       String?   @db.VarChar(255)
+  password    String?    @db.VarChar(255)
+  numberphone String?   @db.VarChar(20)
+  email       String    @unique @db.VarChar(255)
+  address     String?   @db.VarChar(255)
+  role        Role      @default(borrower)
+  delivery    Delivery? 
+  emailVerified  DateTime?
+
+  books  Book[]
+  orders Order[]
+  carts  Cart[]
+  review  Review[]
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model Book {
+  id           Int        @id @default(autoincrement())
+  sku          String     @unique
+  book_name    String     @db.VarChar(255)
+  category_id  Int
+  lender_id    Int
+  image        String?    @db.VarChar(255)
+  rental_price Decimal    @db.Decimal(10, 2)
+  rental_days  Int
+  book_price   Decimal    @db.Decimal(10, 2)
+  state        book_state @default(pending)
+  description  String?    @db.VarChar(1000)
+
+  category     Category      @relation(fields: [category_id], references: [id])
+  lender       User          @relation(fields: [lender_id], references: [id])
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  invoiceItems InvoiceItem[]
+}
+
+model Category {
+  id          Int    @id @default(autoincrement())
+  name        String @db.VarChar(255)
+  description String @db.VarChar(500)
+  books       Book[]
+}
+model Review {
+  review_id    Int      @id @default(autoincrement())
+  user_id      Int
+  rating       Int      
+  image        String?  @db.VarChar(255)
+  comment      String?  @db.VarChar(1000)
+  review_date  DateTime
+
+  user         User     @relation(fields: [user_id], references: [id])
+
+  @@map("review")
+}
+
+model Cart {
+  id         Int     @id @default(autoincrement())
+  user_id    Int
+  total_cart Decimal @db.Decimal(10, 2)
+
+  user      User       @relation(fields: [user_id], references: [id])
+  cartItems CartItem[]
+}
+
+model CartItem {
+  id          Int      @id @default(autoincrement())
+  cart_id     Int
+  book_id     Int
+  rental_date DateTime
+  return_date DateTime
+  added_at    DateTime @default(now())
+
+  book Book @relation(fields: [book_id], references: [id])
+  cart Cart @relation(fields: [cart_id], references: [id])
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  borrower_id Int
+  created_at  DateTime    @default(now())
+  state       order_state @default(pending)
+  total       Decimal     @db.Decimal(10, 2)
+
+  borrower User      @relation(fields: [borrower_id], references: [id])
+  invoices Invoice[]
+
+  orderItem OrderItem[]
+}
+
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  order_id     Int
+  book_id      Int
+  rental_price Decimal  @db.Decimal(10, 2)
+  rental_date  DateTime @db.Date
+  return_date  DateTime @db.Date
+  order_date   DateTime
+
+  order Order @relation(fields: [order_id], references: [id])
+  book  Book  @relation(fields: [book_id], references: [id])
+}
+
+model InvoiceItem {
+  id           Int      @id @default(autoincrement())
+  invoice_id   Int
+  book_id      Int
+  rental_price Decimal  @db.Decimal(10, 2)
+  rental_date  DateTime @db.Date
+  return_date  DateTime @db.Date
+  pay_date     DateTime
+
+  invoice    Invoice     @relation(fields: [invoice_id], references: [id])
+  book       Book        @relation(fields: [book_id], references: [id])
+  returnBook ReturnBook?
+}
+
+model Invoice {
+  id         Int           @id @default(autoincrement())
+  order_id   Int
+  created_at DateTime      @default(now())
+  state      invoice_state @default(unpaid)
+  total      Decimal       @db.Decimal(10, 2)
+
+  order        Order         @relation(fields: [order_id], references: [id])
+  invoiceItems InvoiceItem[]
+}
+
+model ReturnBook {
+  id              Int          @id @default(autoincrement())
+  invoice_item_id Int          @unique
+  return_date     DateTime     @db.Date
+  state           return_state @default(not_returned)
+  reason          String       @db.VarChar(1000)
+
+  invoiceItem InvoiceItem @relation(fields: [invoice_item_id], references: [id])
+}
+
+enum Role {
+  admin
+  lender
+  borrower
+}
+
+enum Delivery {
+  direct
+  ship
+}
+
+enum book_state {
+  pending
+  cancelled
+  not_rented
+  renting
+}
+
+enum order_state {
+  pending
+  confirmed
+  cancelled
+}
+
+enum invoice_state {
+  unpaid
+  paid
+  refunded
+}
+
+enum return_state {
+  not_returned
+  pending
+  returned
+}
