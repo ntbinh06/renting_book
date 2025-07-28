@@ -47,7 +47,6 @@ model User {
   id          Int       @id @default(autoincrement())
   name        String?   @db.VarChar(255)
   avatar      String?   @db.VarChar(100)
-  image       String?   @db.VarChar(255)
   password    String?    @db.VarChar(255)
   numberphone String?   @db.VarChar(20)
   email       String    @unique @db.VarChar(255)

@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         const updated = await db.user.update({
             where: {email: session.user.email},
             data: {
-                user_name: body.user_name,
+                name: body.name,
                 address: body.address,
                 numberphone: body.numberphone,
                 avatar: body.avatar,

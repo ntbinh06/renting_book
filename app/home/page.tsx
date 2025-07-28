@@ -2,14 +2,18 @@ import Navbar from "@/components/Navbar";
 import { db } from "@/lib/db";
 
 interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: {
+    category_id?: string;
+  };
 }
 
-const HomePage = async ({ searchParams }: PageProps) => {
-  const categories = await db.category.findMany();
+export default async function HomePage(props: PageProps) {
+  const searchParams = props.searchParams || {};
 
-  const categoryIdRaw = searchParams?.category_id;
-  const categoryFilter = categoryIdRaw ? parseInt(categoryIdRaw as string) : undefined;
+  const categoryIdRaw = searchParams.category_id;
+  const categoryFilter = categoryIdRaw ? parseInt(categoryIdRaw) : undefined;
+
+  const categories = await db.category.findMany();
 
   const books = await db.book.findMany({
     where: {
@@ -26,7 +30,6 @@ const HomePage = async ({ searchParams }: PageProps) => {
     <>
       <Navbar />
       <div className="container mx-auto mt-6 px-4">
-
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-2">Thể loại</h2>
           <div className="flex flex-wrap gap-3">
@@ -89,4 +92,4 @@ const HomePage = async ({ searchParams }: PageProps) => {
   );
 };
 
-export default HomePage;
+

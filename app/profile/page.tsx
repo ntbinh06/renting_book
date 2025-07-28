@@ -24,7 +24,7 @@ export default function ProfilePage() {
           ...prev,
           name: session.user.name || '',
           email: session.user.email || '',
-          avatar: session.user.avatar || '',
+          image: session.user.avatar || '',
           numberphone: session.user.numberphone || '',
           address: session.user.address || '',
           delivery: session.user.delivery || 'direct',
@@ -121,7 +121,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="sm:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             type="text"
-            name="user_name"
+            name="name"
             value={form.name}
             onChange={handleChange}
             placeholder="Họ tên"
