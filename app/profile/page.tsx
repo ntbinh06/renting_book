@@ -22,7 +22,7 @@ export default function ProfilePage() {
       if (session?.user) {
         setForm((prev) => ({
           ...prev,
-          user_name: session.user.name || '',
+          name: session.user.name || '',
           email: session.user.email || '',
           avatar: session.user.avatar || '',
           numberphone: session.user.numberphone || '',
@@ -74,7 +74,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   const data = await res.json();
   if (data.success) {
     alert("Cập nhật thành công!");
-// Gán lại dữ liệu UI từ response thay vì getSession()
+
   setForm({
     name: data.user.name || "",
     email: data.user.email || "",
